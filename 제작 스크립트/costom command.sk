@@ -1,0 +1,18 @@
+command /[명령어이름] [arg]:
+    trigger:
+        [구문]
+
+# 명령어 이름 : 명령어 사용할때 적는 단어
+# [arg] : argument의 약자, 명령어 이름 다음으로 오는 것들은 다 arg라고 생각
+# ex. /give [플레이어][아이템][수량][데이터태그] << arg
+
+command /give [<player>] [<itemtype>] [<integer>] [<integer>]:
+    trigger:
+        [구문]
+
+# 채팅을 전송 하는 구문
+# send "[할말]" to [상대]
+
+commend /메세지 [<player>] [<text>]:
+    trigger:
+        send "%arg 2%" to arg 1
