@@ -2,7 +2,7 @@
 # 변형이 필요할경우 디스코드 kyubinn__에게 연락부탁드립니다.
 # 제작 : kyubin
 # 아이디어 제공 : 정춘봉,요아
-# 테스터 : 큐빈
+# 테스터 : 큐빈, 요아
 
 # 파티 명령어 확인
 command /파티 :
@@ -20,8 +20,6 @@ command /파티장 :
             send "&c당신은 파티에 속해있지 않습니다."
         else if player is not {party_leader::%{party::%uuid of player%}%}:
             send "&c당신은 파티장이 아닙니다."
-        else if {party::%arg-1%} is not {party::%uuid of player%}:
-            send "&c해당 플레이어는 같은 파티에 속해있지 않습니다!"
         else:
             send "/파티장 위임 <플레이어> : 파티장 위임하기"
             send "/파티장 추방 <플레이어> : 파티에서 플레이어 퇴출"
@@ -51,11 +49,11 @@ on chat:
         if {party_chat::%uuid of player%} is true:
             cancel event
             loop {party_members::%{party::%uuid of player%}%::*}:
-                send "&a[파티] %uuid of player%: %message%" to loop-player
+                send "&a[파티] %player%: %message%" to loop-value
         else:
-            broadcast "%uuid of player%: %message%"
+            broadcast "%player%: %message%"
     else:
-        broadcast "%uuid of player%: %message%"
+        broadcast "%player%: %message%"
 
 # 파티 생성 명령어
 command /파티 만들기 <text>:
@@ -139,7 +137,7 @@ command /파티 리스트:
             send "&a파티 리스트가 열렸습니다."
 
 # 클릭 시 파티원 추방 또는 파티장 위임 (파티장만 가능)
-on inventroy click:
+on inventory click:
     if inventory name of player's current inventory is "&a%{party::%uuid of player%}% 파티 리스트":
         cancel event
         set {_clicked_player} to uncolored name of clicked item
@@ -194,7 +192,7 @@ command /파티장 추방 <player>:
 on join:
     if {party::%uuid of player%} is set:
         if {party_leader::%{party::%uuid of player%}%} is not set:
-            set {party_leader::%{party::%uuid of plyaer%}%} to player
+            set {party_leader::%{party::%uuid of player%}%} to player
             send "&a당신이 자동으로 파티장으로 설정되었습니다."
 
 #op용 파티관리 명령어 확인
@@ -234,7 +232,7 @@ command /파티관리 경험치분배 <on/off>:
             send "&c올바른 인자를 입력하세요: 'on' 또는 'off'. "
 
 # 몬스터 처치 시 경험치 분배
-on death of entity:
+on death:
     if victim is a mystic_mob:
         if {party_xp_distribution::true} is true:
             set {_xp} to victim's experience
