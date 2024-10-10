@@ -1,0 +1,11 @@
+command /변수 [<text>] [<number>]:
+    trigger:
+        if arg 1 is "더하기" : # 만약 arg 1이 더하기라면
+            add arg 2 to {변수} # "변수" 라는 이름의 변수에 arg 2만큼 더한다
+        else if arg 1 is "빼기" : # 만약 arg 1이 빼기라면
+            subtract arg 2 from {변수} # "변수"라는 이름의 변수에서 arg 2만큼 뺀다
+        else if arg 1 is "확인" : # 만약 arg 1이 확인이라면
+            send "%{변수}%" # "변수"라는 이름의 변수의 값을 출력한다
+
+
+

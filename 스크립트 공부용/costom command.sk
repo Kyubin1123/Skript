@@ -13,6 +13,6 @@ command /give [<player>] [<itemtype>] [<integer>] [<integer>]:
 # 채팅을 전송 하는 구문
 # send "[할말]" to [상대]
 
-commend /메세지 [<player>] [<text>]:
+command /메세지 [<player>] [<text>]:
     trigger:
         send "%arg 2%" to arg 1
