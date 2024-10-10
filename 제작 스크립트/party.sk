@@ -1,0 +1,280 @@
+# 스크립트에 관련된 제작권은 모두 큐빈에게 있으며, 이를 재판매하거나, 재배포, 카피는 불가능하며
+# 변형이 필요할경우 디스코드 kyubinn__에게 연락부탁드립니다.
+# 제작 : kyubin
+# 아이디어 제공 : 정춘봉,요아
+# 테스터 : 큐빈
+
+# 파티 명령어 확인
+command /파티 :
+    trigger:
+        send "/파티 만들기 <파티명> : 원하는 파티명으로 파티 생성"
+        send "/파티 초대 <플레이어> : 플레이어 파티 초대"
+        send "/파티 채팅 : 파티 채팅으로 변경"
+        send "/일반 채팅 : 일반 채팅으로 변경"
+        send "/파티 리스트 : 파티원 확인하기"
+
+# 파티장 명령어 확인
+command /파티장 :
+    trigger:
+        if {party::%uuid of player%} is not set:
+            send "&c당신은 파티에 속해있지 않습니다."
+        else if player is not {party_leader::%{party::%uuid of player%}%}:
+            send "&c당신은 파티장이 아닙니다."
+        else if {party::%arg-1%} is not {party::%uuid of player%}:
+            send "&c해당 플레이어는 같은 파티에 속해있지 않습니다!"
+        else:
+            send "/파티장 위임 <플레이어> : 파티장 위임하기"
+            send "/파티장 추방 <플레이어> : 파티에서 플레이어 퇴출"
+            send "/파티장 파티명 <파티명> : 파티명 변경하기"
+
+# 파티 채팅 모드 활성화/비활성화 명령어
+command /파티 채팅:
+    trigger:
+        if {party::%uuid of player%} is set:
+            set {party_chat::%uuid of player%} to true
+            send "&a파티 채팅 모드로 전환되었습니다. 이제 파티원과만 채팅합니다."
+        else:
+            send "&c당신은 파티에 속해있지 않습니다."
+            
+# 전체 채팅으로 돌아오는 명령어
+command /일반 채팅:
+    trigger:
+        if {party::%uuid of player%} is set:
+            set {party_chat::%uuid of player%} to false
+            send "&c일반 채팅 모드로 전환되었습니다. 이제 모든 플레이어와 채팅합니다."
+        else:
+            send "&c당신은 파티에 속해있지 않습니다."
+
+# 플레이어가 메시지를 보낼 때 파티 채팅인지 확인용
+on chat:
+    if {party::%uuid of player%} is set:
+        if {party_chat::%uuid of player%} is true:
+            cancel event
+            loop {party_members::%{party::%uuid of player%}%::*}:
+                send "&a[파티] %uuid of player%: %message%" to loop-player
+        else:
+            broadcast "%uuid of player%: %message%"
+    else:
+        broadcast "%uuid of player%: %message%"
+
+# 파티 생성 명령어
+command /파티 만들기 <text>:
+    trigger:
+        if {party::%uuid of player%} is set:
+            send "&c이미 %arg 1% 파티에 속해 있습니다"
+        else if {party_by_name::%arg-1%} is set:
+            send "&c이미 해당 이름의 파티가 존재합니다. 다른 이름을 선택하세요!"
+        else:
+            set {party::%uuid of player%} to arg-1
+            set {party_leader::%arg-1%} to player
+            set {party_by_name::%arg-1%} to player
+            add player to {party_members::%arg-1%::*}
+
+            send "&a파티 '%arg-1%'(이)가 생성완료!"
+            send "&a파티에 초대하려면 '/파티 초대 <플레이어 이름>'을 사용하세요."
+            
+            set {party_xp_multiplier::%{party::%uuid of player%}%} to 1 # 경험치 배율 설정
+            set {party_friendly_fire::%{party::%uuid of player%}%} to false # 파티 내 타격 비활성화
+
+# 파티 초대 명령어 (채팅 내 버튼 활성화)
+command /파티 초대 <player>:
+    trigger:
+        if {party::%uuid of player%} is not set:
+            send "&c파티를 먼저 만들고 초대해주세요"
+        else if {party::%arg-1%} is set:
+            send "&c%arg-1% 님은 이미 다른 파티에 속해있습니다."
+        else if size of {party_members::%{party::%player%}%::*} >= {party_max_members}:
+            send "&c파티 인원이 최대치에 도달했습니다! 최대 인원: %{party_max_members}%명"
+
+        #초대받은 플레이어에게 채팅 버튼 보내기
+        else:
+            send "&a초대장을 보냈습니다!"
+            send "%uuid of player%님이 당신을 파티에 초대했습니다." to arg-1
+            set {party_invite::%arg-1%} to %uuid of player%
+            send json "클릭해서 수락 또는 거절 하세요!" to arg-1 with:
+                "&a[수락]" to run "/파티 수락" and
+                "&c[거절]" to run "/파티 거절"
+
+#파티 수락 명령어
+command /파티 수락:
+    trigger:
+        if {party_invite::%uuid of player%} is set:
+            set {party::%uuid of player%} to {party_invite::%uuid of player%}
+            add player to {party_members::%{party::%uuid of player%}%::*}
+            send "&a 파티에 가입했습니다!"
+            delete {party_invte::%uuid of player%}
+        else:
+            send "&c들어온 초대가 없습니다."
+
+# 파티 거절 명령어
+command /파티 거절:
+    trigger:
+        if {party_invite::%uuid of player%} is set:
+            send "&c초대를 거절했습니다!"
+            send "&c%uuid of player% 님이 초대를 거절했습니다!" to {part_invite::%uuid of player%}
+            delete {party_invite::%uuid of player%}
+        else:
+            send "&c들어온 초대가 없습니다."
+
+# 파티 리스ㅌ GUI 열기 명령어
+command /파티 리스트:
+    trigger:
+        if {party::%uuid of player%} is not set:
+            send "&c당신은 파티에 속해있지 않습니다!"
+        else:
+            set {_party} to {party::%uuid of player%}
+            open virtual chest with size 3 named "&a%{_party}% 파티 리스트" to player
+            set {_index} to 0
+
+            loop {party_members::%{_party}%::*}:
+                set {_party_member} to loop-value
+                set slot {_index} of player's current inventory to player's skull of {_party_member} named "&b%loop-value%"
+
+                #파티장에게만 추가 기능을 부여
+                if player is {party_leader::%_party%}:
+                    set {_lore} to "&a좌클릭: &e파티장 위임" and "&c우클릭: &e파티원 추방"
+                    set lore of slot {_index} of player's current inventory to {_lore}
+
+                add 1 to {_index}
+            send "&a파티 리스트가 열렸습니다."
+
+# 클릭 시 파티원 추방 또는 파티장 위임 (파티장만 가능)
+on inventroy click:
+    if inventory name of player's current inventory is "&a%{party::%uuid of player%}% 파티 리스트":
+        cancel event
+        set {_clicked_player} to uncolored name of clicked item
+        if player is {party_leader::%{party::%uuid of player%}%}:
+            if click type is left mouse button:
+                if {_clicked_player} is not player:
+                    set {party_leader::%{party::%uuid of player%}%} to {_clicked_player}
+                    send "&a%{_clicked_player}% 님이 새로운 파티장으로 위임되었습니다."
+                    send "&a파티장이 %uuid of player%에서 %{_clicked_player}%로 변경되었습니다." to {_clicked_player}
+                    close player's inventory
+                else:
+                    send "&c자신에게 파티장을 위임할 수 없습니다."
+
+            if click type is right mouse button:
+                if {_clicked_player} is not uuid of player:
+                    remove {_clicked_player} from {party_members::%{party::%uuid of player%}%::*}
+                    send "&c%{_clicked_player}%님을 파티에서 추방했습니다."
+                    send "&c당신은 파티에서 추방되었습니다." to {_clicked_player}
+                    close player's inventory
+                else:
+                    send "&c자신을 추방할 수 없습니다."
+
+# 파티장 위임 기능
+command /파티장 위임 <player>:
+    trigger:
+        if {party::%uuid of player%} is not set:
+            send "&c당신은 파티에 속해있지 않습니다!"
+        else if player is not {party_leader::%{%uuid of player%}%}:
+            send "&c당신은 파티장이 아닙니다!"
+        else if {party::%arg-1%} is not {party::%uuid of player%}:
+            send "&c해당 플레이어는 같은 파티에 속해있지 않습니다!"
+        else:
+            set {party_leader::%{%uuid of player%}%} to arg-1
+            send "&a%arg-1% 님이 새로운 파티장으로 위임되었습니다!"
+            send "&a파티장이 %uuid of player%에서 %arg-1%로 변경되었습니다." to arg-1
+
+# 파티원 추방 명령어
+command /파티장 추방 <player>:
+    trigger:
+        if {party::%uuid of player%} is not set:
+            send "&c당신은 파티에 속해있지 않습니다!"
+        else if player is not {party_leader::%{party::%uuid of player%}%}:
+            send "&c당신은 파티장이 아닙니다!"
+        else if {party::%arg-1%} is not {party::%uuid of player%}:
+            send "&c해당 플레이어는 같은 파티에 속해있지 않습니다!"
+        else:
+            remove arg-1 from {party_members::%{party::%uuid of player%}%::*}
+            send "&a%arg-1%님을 파티에서 추방했습니다."
+            send "&c당신은 파티에서 추방되었습니다."to arg-1
+
+# 파티장이 설정된 경우만 파티 관련 기능 사용 가능
+on join:
+    if {party::%uuid of player%} is set:
+        if {party_leader::%{party::%uuid of player%}%} is not set:
+            set {party_leader::%{party::%uuid of plyaer%}%} to player
+            send "&a당신이 자동으로 파티장으로 설정되었습니다."
+
+#op용 파티관리 명령어 확인
+command /파티관리:
+    permission: party.admin
+    trigger:
+        send "/파티관리 setlimit <인원수> : 서버 전체 파티인원 조정"
+        send "/파티관리 setxp <경험치배율> : 서버 전체 파티 경험치 배율 조정"
+        send "/파티관리 경험치분배 <on|off> : 경험치분배 활성화 온오프"
+        send "/파티관리 강제삭제 <파티명> : 오류가 있을때 파티 강제삭제"
+        send "/파티관리 타격 <파티명> <boolean> : 각각 파티에 서로 타격 가능 여부 설정"
+
+# [스탭용] 서버 저네 파티 최대 인원 설정
+command /파티관리 setlimit <number> :
+    permission: party.admin
+    trigger:
+        set {party_max_members} to arg-1
+        send "&a서버 전체의 파티 최대 인원이 %arg-1%명으로 설정되었습니다."
+
+# [스탭용] 파티 경험치 배율 설정
+command /파티관리 setxp <number>:
+    permission: party.admin
+    trigger:
+        set {party_xp_multiplier} to arg-2
+        send "&a서버 전체 파티 경험치 배율이 %arg-1%로 설정되었습니다."
+
+# [스탭용] 파티 경험치 분배 설정
+command /파티관리 경험치분배 <on/off>:
+    permission: party.admin
+    trigger:
+        if arg-1 is "on":
+            set {party_xp_distribution::true} to true
+            send "&a서버 내 모든 파티의 경험치 분배가 활성화 되었습니다!"
+        else if arg-1 is "off":
+            send "&a서버 내 모든 파티의 경험치 분배가 비활성화 되었습니다!"
+        else:
+            send "&c올바른 인자를 입력하세요: 'on' 또는 'off'. "
+
+# 몬스터 처치 시 경험치 분배
+on death of entity:
+    if victim is a mystic_mob:
+        if {party_xp_distribution::true} is true:
+            set {_xp} to victim's experience
+
+            loop {party::%uuid of victim%::*}:
+                if loop-player is online:
+                    add {_xp} / size of {party::%uuid of victim%::*} to loop-player's experience
+
+# [스탭용] 파티 강제삭제 명령어
+command /파티관리 강제삭제 <text>:
+    permission: party.admin
+    trigger:
+        if {party::%arg-1%} is set:
+            delete {party::%arg-1%}
+            delete {party_members::%arg-1%::*}
+            delete {party_xp_multiplier::%arg-1%}
+            delete {party_friendly_fire::%arg-1%}
+            send "&c파티 '%arg-1%'가 삭제되었습니다."
+        
+        else:
+            send "&c해당 파티가 존재하지 않습니다."
+
+# [스탭용] 파티 타격 설정 명령어
+command /파티관리 타격설정 <text> <boolean>:
+    permission: party.admin
+    trigger:
+        if {party::%arg-1%} is set:
+            set {party_friendly_fire::%arg-1%} to arg-2
+            if arg-2 is true:
+                send "&a파티  '%arg-1%'의 파티 내 타격이 허용되었습니다."
+            else:
+                send "&c파티 '%arg-1%'의 파티 내 타격이 비허용되었습니다."
+        else:
+            send "&c해당 파티가 존재하지 않습니다."
+
+on damage:
+    attacker is a player 
+    victim is a player
+    if {party::%attacker%} is set:
+        if {party::%attacker%} is {party::%victim%}:
+            if {party_friendly_fire::%{party::%attacker%}%} is false:
+                cancel event
+                send "&c파티원을 때리지 말아주세요오.." to attacker
