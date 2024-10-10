@@ -1,0 +1,7 @@
+on join : # 들어왔을때
+    [구문]
+
+on damage : #데미지를 입었을 때
+    send "아이쿠!" to victim
+    # on damage 이벤트문은 player 대신, 공격을 받은 사람 = victim / 공격을 한 사람 = attacker
+    
