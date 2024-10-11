@@ -1,0 +1,59 @@
+options:
+	prefix: &6[닉네임]&f
+
+
+command /닉네임 [<text>]:
+    trigger:
+        if arg 1 is not set:
+            send "{@prefix} /닉네임 [원하는닉]" to player
+
+        else:
+            if {닉네임::%uuid of player%} is not set:
+                set {닉네임::%uuid of player%} to uncolored arg 1
+                set {닉네임.한글::%uncolored arg 1%} to uuid of player
+                execute console command "cmi nick %uncolored arg-1% %player%"
+                send "{@prefix} &6%player%&a님의 닉네임을 &f%uncolored arg 1%&a(으)로 설정 했습니다"
+
+            else:
+                send "{@prefix} 이미 닉네임을 설정하였습니다"
+
+
+command /nickname [<text>] [<offline player>] [<text>]:
+    permission: skript.nickname
+    trigger:
+        if arg 1 is not set:
+            send "{@prefix} /nickname [설정/삭제] [플레이어] [변경할 닉네임]" to player
+
+        else if arg 1 is "설정":
+            arg 2 is set:
+                arg 3 is set:
+                    set {닉네임::%uuid of arg 2%} to colored arg 3
+                    set {닉네임.한글::%uncolored arg 3%} to uuid of arg 2
+                    execute console command "cmi nick %arg-3% %arg-2%"
+                    send "{@prefix} &6%arg 2%&a님의 닉네임을 &f%colored arg 3%&a(으)로 변경 했습니다"
+
+                else:
+                    send "{@prefix} /nickname [설정] [플레이어] [변경할 닉네임]" to player
+
+            else:
+                send "{@prefix} /nickname [설정] [플레이어] [변경할 닉네임]" to player
+
+        else if arg 1 is "삭제":
+            arg 2 is set:
+                arg 3 is not set:
+                    delete {닉네임.한글::%uncolored arg 3%} #얘 삭제하고시픔
+                    delete {닉네임::%uuid of arg 2%}
+                    execute console command "cmi nick off %arg-2%"
+                    send "{@prefix} &6%arg 2%&a님의 변경 닉네임을 삭제했습니다"
+                    
+            else:
+                send "{@prefix} /nickname [삭제] [플레이어]" to player
+
+command /닉네임사전설정 [<offline player>] [<text>]:
+    permission: op
+    trigger:
+        if arg 1 is set:
+            if arg 2 is set:
+                set {닉네임::%uuid of arg-1%} to arg-2
+                set {닉네임.한글::%arg 2%} to uuid of arg-1
+                send "{@prefix} &6%arg 1%&a님의 닉네임을 &f%colored arg 2%&a(으)로 설정 했습니다" 
