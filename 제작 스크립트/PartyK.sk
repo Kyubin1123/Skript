@@ -17,37 +17,48 @@
 # 아이디어 제공 : 모험왕 정춘봉(CHZZK), 요아
 # 테스터 : 큐빈(CHZZK), 요아
 # ----------------------------------------------------------------
+option:
+    p: &6[파티]&r
 
+on load:
+    if {party.maxnamelen} is not set:
+        set {party.maxnamelen} to 7
+    if {party.maxparty} is not set:
+        set {party.maxparty} to 4
+    delete {party.invite::*}
+
+function party_leader(p:player) :: boolean:
+    if {party.player::%uuid of {_p}%} is not set:
+        return false
+    set {_party} to {party.player::%uuid of {_p}%}
+    if {player.data::%{_party}%::leader} is uuid of {_p}:
+        return true
+    return false
+    
 command /파티 [<string>] [<string>]:
     if arg 1 is not set:
-        message "&4&l&m----------------------------------------------"
-        message "&6PartyK Commends"
-        message "&e/파티 도움말 &7: 파티 도움말을 봅니다."
-        message "&e/파티 생성 [파티명] &7: 파티를 생성합니다."
-        message "&e/파티 초대 [플레이어명] &7: 파티에 플레이어를 초대합니다."
-        message "&e/파티 수락 &7: 파티초대를 수락합니다."
-        message "&e/파티 거절 &7: 파티초대를 거절합니다."
-        message "&e/파티 리스트 &7: 파티원들 리스트가 있는 gui를 엽니다."
-        message "&e/파티 탈퇴 [파티명] &7: 파티에서 탈퇴합니다."
-        message "&e/파티 위임 [플레이어명] &7: 파티장을 위임합니다. &c[파티장 전용]"
-        message "&e/파티 추방 [플레이어명] &7: 파티원을 추방합니다. &c[파티장 전용]"
-        message "&e/파티 수정 [파티명] &7: 파티명을 수정합니다. &c[파티장 전용]"
-        message "&e/파티 해체 [파티명] &7: 파티를 해체합니다. &c[파티장 전용]"
-        message "&4&l&m----------------------------------------------"
+        send "&4&l&m----------------------------------------------"
+        send "&6 PartyK Commends"
+        send "&e /파티 도움말 &7: 파티 도움말을 봅니다."
+        send "&7 파티 시스템 Made by.큐빈"
+        send "&4&l&m----------------------------------------------"
         stop
+
     if arg 1 is "도움말":
-        message "&4&l&m----------------------------------------------"
-        message "&6PartyK Commends"
-        message "&e/파티 도움말 &7: 파티 도움말을 봅니다."
-        message "&e/파티 생성 [파티명] &7: 파티를 생성합니다."
-        message "&e/파티 초대 [플레이어명] &7: 파티에 플레이어를 초대합니다."
-        message "&e/파티 수락 &7: 파티초대를 수락합니다."
-        message "&e/파티 거절 &7: 파티초대를 거절합니다."
-        message "&e/파티 리스트 &7: 파티원들 리스트가 있는 gui를 엽니다."
-        message "&e/파티 탈퇴 [파티명] &7: 파티에서 탈퇴합니다."
-        message "&e/파티 위임 [플레이어명] &7: 파티장을 위임합니다. &c[파티장 전용]"
-        message "&e/파티 추방 [플레이어명] &7: 파티원을 추방합니다. &c[파티장 전용]"
-        message "&e/파티 수정 [파티명] &7: 파티명을 수정합니다. &c[파티장 전용]"
-        message "&e/파티 해체 [파티명] &7: 파티를 해체합니다. &c[파티장 전용]"
-        message "&4&l&m----------------------------------------------"
+        send "&4&l&m----------------------------------------------"
+        send "&6 PartyK Commends"
+        send "&e /파티 도움말 &7: 파티 도움말을 봅니다."
+        send "&e /파티 생성 [파티명] &7: 파티를 생성합니다."
+        send "&e /파티 초대 [플레이어명] &7: 파티에 플레이어를 초대합니다."
+        send "&e /파티 수락 &7: 파티초대를 수락합니다."
+        send "&e /파티 거절 &7: 파티초대를 거절합니다."
+        send "&e /파티 리스트 &7: 파티원들 리스트가 있는 gui를 엽니다."
+        send "&e /파티 탈퇴 [파티명] &7: 파티에서 탈퇴합니다."
+        send "&e /파티 위임 [플레이어명] &7: 파티장을 위임합니다. &c[파티장 전용]"
+        send "&e /파티 추방 [플레이어명] &7: 파티원을 추방합니다. &c[파티장 전용]"
+        send "&e /파티 수정 [파티명] &7: 파티명을 수정합니다. &c[파티장 전용]"
+        send "&e /파티 해체 [파티명] &7: 파티를 해체합니다. &c[파티장 전용]"
+        send "&7 파티 시스템 Made by.큐빈"
+        send "&4&l&m----------------------------------------------"
         stop
+    
